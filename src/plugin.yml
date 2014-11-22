@@ -1,0 +1,5 @@
+name: AnimatedPing
+main: animatedping.AnimatedPing
+version: 1.0
+author: _Shevchik_
+depend: [ProtocolLib]
