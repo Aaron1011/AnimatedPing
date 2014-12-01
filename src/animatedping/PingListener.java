@@ -1,14 +1,8 @@
 package animatedping;
 
-import java.lang.reflect.Field;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
-import net.minecraft.server.v1_8_R1.MinecraftServer;
-import net.minecraft.server.v1_8_R1.NetworkManager;
-import net.minecraft.server.v1_8_R1.ServerConnection;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -30,19 +24,6 @@ import com.comphenix.protocol.wrappers.WrappedServerPing;
 public class PingListener {
 
 	private static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
-	private static final List<NetworkManager> managers = getNetworkManagers();
-
-	@SuppressWarnings("unchecked")
-	private static List<NetworkManager> getNetworkManagers() {
-		try {
-			Field netowrkmanagerlistfield = ServerConnection.class.getDeclaredField("g");
-			netowrkmanagerlistfield.setAccessible(true);
-			return (List<NetworkManager>) netowrkmanagerlistfield.get(MinecraftServer.getServer().getServerConnection());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
 
 	public PingListener(final AnimatedPing pluginRef)  {
 		manager.addPacketListener(
@@ -56,7 +37,7 @@ public class PingListener {
 					if (pluginRef.getConfiguration().getPings().length > 0) {
 						event.setCancelled(true);
 						if (event.getPacket().getType() == PacketType.Status.Server.OUT_SERVER_INFO) {
-							new PingResponceThread(event.getPlayer(), event.getPacket().getServerPings().read(0), 300, pluginRef.getConfiguration().getPings()).start();
+							new PingResponseThread(event.getPlayer(), event.getPacket().getServerPings().read(0), 300, pluginRef.getConfiguration().getPings()).start();
 						}
 					}
 				}
@@ -64,7 +45,7 @@ public class PingListener {
 		);
 	}
 
-	private static class PingResponceThread extends Thread {
+	private static class PingResponseThread extends Thread {
 
 		private static final UUID randomUUID = UUID.randomUUID();
 
@@ -75,7 +56,7 @@ public class PingListener {
 
 		private int currentPingToDisplay;
 
-		public PingResponceThread(Player player, WrappedServerPing originalResponce, int interval, PingData[] pingDatas) {
+		public PingResponseThread(Player player, WrappedServerPing originalResponce, int interval, PingData[] pingDatas) {
 			this.player = player;
 			this.originalResponce = originalResponce;
 			this.interval = interval;
@@ -85,8 +66,8 @@ public class PingListener {
 		@SuppressWarnings("deprecation")
 		@Override
 		public void run() {
-			do {
-				try {
+			try {
+				do {
 					manager.recieveClientPacket(player, new PacketContainer(PacketType.Status.Client.IN_PING));
 					PacketContainer serverInfo = manager.createPacket(PacketType.Status.Server.OUT_SERVER_INFO);
 					originalResponce.setPlayersOnline(Bukkit.getOnlinePlayers().length);
@@ -112,21 +93,11 @@ public class PingListener {
 						currentPingToDisplay = 0;
 					}
 					Thread.sleep(interval);
-				} catch (Exception e) {
-					break;
-				}
-			} while (isConnected(player.getAddress()));
+				} while (player.isOnline());
+			} catch (Exception e) {
+			}
 			player = null;
 			originalResponce = null;
-		}
-
-		private boolean isConnected(InetSocketAddress address) {
-			for (NetworkManager nm : managers) {
-				if (nm.getSocketAddress().equals(address)) {
-					return true;
-				}
-			}
-			return false;
 		}
 
 	}
