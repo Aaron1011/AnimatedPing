@@ -35,9 +35,9 @@ public class PingListener {
 	@SuppressWarnings("unchecked")
 	private static List<NetworkManager> getNetworkManagers() {
 		try {
-			Field ffield = ServerConnection.class.getDeclaredField("f");
-			ffield.setAccessible(true);
-			return (List<NetworkManager>) ffield.get(MinecraftServer.getServer().getServerConnection());
+			Field netowrkmanagerlistfield = ServerConnection.class.getDeclaredField("g");
+			netowrkmanagerlistfield.setAccessible(true);
+			return (List<NetworkManager>) netowrkmanagerlistfield.get(MinecraftServer.getServer().getServerConnection());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
