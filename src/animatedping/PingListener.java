@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import net.minecraft.server.v1_7_R4.MinecraftServer;
-import net.minecraft.server.v1_7_R4.NetworkManager;
-import net.minecraft.server.v1_7_R4.ServerConnection;
+import net.minecraft.server.v1_8_R1.MinecraftServer;
+import net.minecraft.server.v1_8_R1.NetworkManager;
+import net.minecraft.server.v1_8_R1.ServerConnection;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -82,13 +82,14 @@ public class PingListener {
 			this.pingDatas = pingDatas;
 		}
 
+		@SuppressWarnings("deprecation")
 		@Override
 		public void run() {
 			do {
 				try {
 					manager.recieveClientPacket(player, new PacketContainer(PacketType.Status.Client.IN_PING));
 					PacketContainer serverInfo = manager.createPacket(PacketType.Status.Server.OUT_SERVER_INFO);
-					originalResponce.setPlayersOnline(Bukkit.getOnlinePlayers().size());
+					originalResponce.setPlayersOnline(Bukkit.getOnlinePlayers().length);
 					PingData toDisplay = pingDatas[currentPingToDisplay];
 					if (toDisplay.getImage() != null) { 
 						originalResponce.setFavicon(toDisplay.getImage());
