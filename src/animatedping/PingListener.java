@@ -94,7 +94,7 @@ public class PingListener {
 					}
 					Thread.sleep(interval);
 				} while (player.isOnline());
-			} catch (Exception e) {
+			} catch (Throwable e) {
 			}
 			player = null;
 			originalResponce = null;
