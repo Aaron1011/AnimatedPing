@@ -68,7 +68,6 @@ public class PingListener {
 		public void run() {
 			try {
 				do {
-					manager.recieveClientPacket(player, new PacketContainer(PacketType.Status.Client.IN_PING));
 					PacketContainer serverInfo = manager.createPacket(PacketType.Status.Server.OUT_SERVER_INFO);
 					originalResponce.setPlayersOnline(Bukkit.getOnlinePlayers().length);
 					PingData toDisplay = pingDatas[currentPingToDisplay];
@@ -88,6 +87,7 @@ public class PingListener {
 					}
 					serverInfo.getServerPings().write(0, originalResponce);
 					manager.sendServerPacket(player, serverInfo, false);
+					manager.recieveClientPacket(player, new PacketContainer(PacketType.Status.Client.IN_PING));
 					currentPingToDisplay++;
 					if (currentPingToDisplay >= pingDatas.length) {
 						currentPingToDisplay = 0;
