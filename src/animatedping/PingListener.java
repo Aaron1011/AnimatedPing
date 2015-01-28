@@ -65,11 +65,11 @@ public class PingListener {
 
 		@Override
 		public void run() {
-			if (!player.isOnline()) {
-				cancel();
-				return;
-			}
 			try {
+				if (!player.isOnline()) {
+					cancel();
+					return;
+				}
 				PacketContainer serverInfo = manager.createPacket(PacketType.Status.Server.OUT_SERVER_INFO);
 				this.originalResponse.setVersionName(ChatColor.GRAY.toString()+Bukkit.getOnlinePlayers().size()+"/"+this.originalResponse.getPlayersMaximum());
 				PingData toDisplay = pingResponses[currentPingToDisplay];
