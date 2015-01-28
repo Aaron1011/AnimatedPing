@@ -85,7 +85,6 @@ public class PingListener {
 						WrappedGameProfile profile = new WrappedGameProfile(UUID.randomUUID(), ChatColor.translateAlternateColorCodes('&', player));
 						profiles.add(profile);
 					}
-					originalResponse.setPlayersVisible(true);
 					originalResponse.setPlayers(profiles);
 				}
 				serverInfo.getServerPings().write(0, originalResponse);
