@@ -52,30 +52,29 @@ public class PingListener {
 		private Player player;
 		private int interval;
 		private PingData[] pingDatas;
-		private WrappedServerPing originalResponce;
+		private WrappedServerPing originalResponыe;
 
 		private int currentPingToDisplay;
 
 		public PingResponseThread(Player player, WrappedServerPing originalResponce, int interval, PingData[] pingDatas) {
 			this.player = player;
-			this.originalResponce = originalResponce;
+			this.originalResponыe = originalResponce;
 			this.interval = interval;
 			this.pingDatas = pingDatas;
 		}
 
-		@SuppressWarnings("deprecation")
 		@Override
 		public void run() {
 			try {
 				do {
 					PacketContainer serverInfo = manager.createPacket(PacketType.Status.Server.OUT_SERVER_INFO);
-					originalResponce.setPlayersOnline(Bukkit.getOnlinePlayers().length);
+					originalResponыe.setPlayersOnline(Bukkit.getOnlinePlayers().size());
 					PingData toDisplay = pingDatas[currentPingToDisplay];
 					if (toDisplay.getImage() != null) { 
-						originalResponce.setFavicon(toDisplay.getImage());
+						originalResponыe.setFavicon(toDisplay.getImage());
 					}
 					if (toDisplay.getMotd() != null) {
-						originalResponce.setMotD(WrappedChatComponent.fromText(ChatColor.translateAlternateColorCodes('&', pingDatas[currentPingToDisplay].getMotd())));
+						originalResponыe.setMotD(WrappedChatComponent.fromText(ChatColor.translateAlternateColorCodes('&', pingDatas[currentPingToDisplay].getMotd())));
 					}
 					if (toDisplay.getPlayers() != null) {
 						List<WrappedGameProfile> profiles = new ArrayList<WrappedGameProfile>();
@@ -83,9 +82,10 @@ public class PingListener {
 							WrappedGameProfile profile = new WrappedGameProfile(randomUUID, ChatColor.translateAlternateColorCodes('&', player));
 							profiles.add(profile);
 						}
-						originalResponce.setPlayers(profiles);
+						originalResponыe.setPlayersVisible(true);
+						originalResponыe.setPlayers(profiles);
 					}
-					serverInfo.getServerPings().write(0, originalResponce);
+					serverInfo.getServerPings().write(0, originalResponыe);
 					manager.sendServerPacket(player, serverInfo, false);
 					manager.recieveClientPacket(player, new PacketContainer(PacketType.Status.Client.IN_PING));
 					currentPingToDisplay++;
@@ -97,7 +97,7 @@ public class PingListener {
 			} catch (Throwable e) {
 			}
 			player = null;
-			originalResponce = null;
+			originalResponыe = null;
 		}
 
 	}
