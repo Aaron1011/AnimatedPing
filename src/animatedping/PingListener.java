@@ -26,7 +26,7 @@ public class PingListener {
 
 	protected static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
 
-	private final Timer timer = new Timer();
+	private final Timer timer = new Timer("AnimatedPingTimer", true);
 
 	public PingListener(final AnimatedPing pluginRef)  {
 		manager.addPacketListener(
