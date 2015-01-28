@@ -19,16 +19,25 @@ public class Config {
 	}
 
 	private PingData[] pings;
+	private int interval;
 
 	public PingData[] getPings() {
 		return pings;
 	}
 
+	public int getInterval() {
+		return interval;
+	}
+
 	public void loadConfig() {
 		File configfile = new File(plugin.getDataFolder(), "config.yml");
 		YamlConfiguration config = YamlConfiguration.loadConfiguration(configfile);
+		interval = config.getInt("interval", 300);
 		ArrayList<PingData> pings = new ArrayList<PingData>();
 		for (String key : config.getKeys(false)) {
+			if (key.equals("interval")) {
+				continue;
+			}
 			PingData pingData = new PingData(
 				key,
 				config.getString(key+".motd"),
@@ -39,6 +48,7 @@ public class Config {
 		}
 		this.pings = pings.toArray(new PingData[0]);
 		config = new YamlConfiguration();
+		config.set("interval", 300);
 		for (PingData ping : pings) {
 			if (ping.getMotd() != null) {
 				config.set(ping.getConfigName()+".motd", ping.getMotd());

@@ -1,7 +1,8 @@
 package animatedping;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -23,7 +24,9 @@ import com.comphenix.protocol.wrappers.WrappedServerPing;
 
 public class PingListener {
 
-	private static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
+	protected static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
+
+	private final Timer timer = new Timer();
 
 	public PingListener(final AnimatedPing pluginRef)  {
 		manager.addPacketListener(
@@ -37,7 +40,7 @@ public class PingListener {
 					if (pluginRef.getConfiguration().getPings().length > 0) {
 						event.setCancelled(true);
 						if (event.getPacket().getType() == PacketType.Status.Server.OUT_SERVER_INFO) {
-							new PingResponseThread(event.getPlayer(), event.getPacket().getServerPings().read(0), 300, pluginRef.getConfiguration().getPings()).start();
+							timer.schedule(new PingResponseTask(event.getPlayer(), event.getPacket().getServerPings().read(0), pluginRef.getConfiguration().getPings()), 0, pluginRef.getConfiguration().getInterval());
 						}
 					}
 				}
@@ -45,59 +48,63 @@ public class PingListener {
 		);
 	}
 
-	private static class PingResponseThread extends Thread {
-
-		private static final UUID randomUUID = UUID.randomUUID();
+	private static class PingResponseTask extends TimerTask {
 
 		private Player player;
-		private int interval;
-		private PingData[] pingDatas;
-		private WrappedServerPing originalResponыe;
+		private PingData[] pingResponses;
+		private WrappedServerPing originalResponse;
 
 		private int currentPingToDisplay;
 
-		public PingResponseThread(Player player, WrappedServerPing originalResponce, int interval, PingData[] pingDatas) {
+		public PingResponseTask(Player player, WrappedServerPing originalResponce, PingData[] pingDatas) {
 			this.player = player;
-			this.originalResponыe = originalResponce;
-			this.interval = interval;
-			this.pingDatas = pingDatas;
+			this.originalResponse = originalResponce;
+			this.pingResponses = pingDatas;
+			this.originalResponse.setVersionProtocol(-1);
 		}
 
 		@Override
 		public void run() {
-			try {
-				do {
-					PacketContainer serverInfo = manager.createPacket(PacketType.Status.Server.OUT_SERVER_INFO);
-					originalResponыe.setPlayersOnline(Bukkit.getOnlinePlayers().size());
-					PingData toDisplay = pingDatas[currentPingToDisplay];
-					if (toDisplay.getImage() != null) { 
-						originalResponыe.setFavicon(toDisplay.getImage());
-					}
-					if (toDisplay.getMotd() != null) {
-						originalResponыe.setMotD(WrappedChatComponent.fromText(ChatColor.translateAlternateColorCodes('&', pingDatas[currentPingToDisplay].getMotd())));
-					}
-					if (toDisplay.getPlayers() != null) {
-						List<WrappedGameProfile> profiles = new ArrayList<WrappedGameProfile>();
-						for (String player : toDisplay.getPlayers()) {
-							WrappedGameProfile profile = new WrappedGameProfile(randomUUID, ChatColor.translateAlternateColorCodes('&', player));
-							profiles.add(profile);
-						}
-						originalResponыe.setPlayersVisible(true);
-						originalResponыe.setPlayers(profiles);
-					}
-					serverInfo.getServerPings().write(0, originalResponыe);
-					manager.sendServerPacket(player, serverInfo, false);
-					manager.recieveClientPacket(player, new PacketContainer(PacketType.Status.Client.IN_PING));
-					currentPingToDisplay++;
-					if (currentPingToDisplay >= pingDatas.length) {
-						currentPingToDisplay = 0;
-					}
-					Thread.sleep(interval);
-				} while (player.isOnline());
-			} catch (Throwable e) {
+			if (!player.isOnline()) {
+				cancel();
+				return;
 			}
+			try {
+				PacketContainer serverInfo = manager.createPacket(PacketType.Status.Server.OUT_SERVER_INFO);
+				this.originalResponse.setVersionName(ChatColor.GRAY.toString()+Bukkit.getOnlinePlayers().size()+"/"+this.originalResponse.getPlayersMaximum());
+				PingData toDisplay = pingResponses[currentPingToDisplay];
+				if (toDisplay.getImage() != null) { 
+					originalResponse.setFavicon(toDisplay.getImage());
+				}
+				if (toDisplay.getMotd() != null) {
+					originalResponse.setMotD(WrappedChatComponent.fromText(ChatColor.translateAlternateColorCodes('&', pingResponses[currentPingToDisplay].getMotd())));
+				}
+				if (toDisplay.getPlayers() != null) {
+					ArrayList<WrappedGameProfile> profiles = new ArrayList<WrappedGameProfile>();
+					for (String player : toDisplay.getPlayers()) {
+						WrappedGameProfile profile = new WrappedGameProfile(UUID.randomUUID(), ChatColor.translateAlternateColorCodes('&', player));
+						profiles.add(profile);
+					}
+					originalResponse.setPlayersVisible(true);
+					originalResponse.setPlayers(profiles);
+				}
+				serverInfo.getServerPings().write(0, originalResponse);
+				manager.sendServerPacket(player, serverInfo, false);
+				manager.recieveClientPacket(player, new PacketContainer(PacketType.Status.Client.IN_PING));
+				currentPingToDisplay++;
+				if (currentPingToDisplay >= pingResponses.length) {
+					currentPingToDisplay = 0;
+				}
+			} catch (Throwable e) {
+				cancel();
+			}
+		}
+
+		@Override
+		public boolean cancel() {
 			player = null;
-			originalResponыe = null;
+			originalResponse = null;
+			return super.cancel();
 		}
 
 	}
