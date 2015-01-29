@@ -34,6 +34,7 @@ public class PingListener {
 				PacketAdapter
 				.params(pluginRef, PacketType.Status.Server.OUT_SERVER_INFO, PacketType.Status.Server.OUT_PING)
 				.listenerPriority(ListenerPriority.HIGHEST)
+				.optionAsync()
 			) {
 				@Override
 				public void onPacketSending(PacketEvent event) {
@@ -49,6 +50,8 @@ public class PingListener {
 	}
 
 	private static class PingResponseTask extends TimerTask {
+
+		private static final UUID randomUUID = UUID.randomUUID();
 
 		private Player player;
 		private PingData[] pingResponses;
@@ -82,7 +85,7 @@ public class PingListener {
 				if (toDisplay.getPlayers() != null) {
 					ArrayList<WrappedGameProfile> profiles = new ArrayList<WrappedGameProfile>();
 					for (String player : toDisplay.getPlayers()) {
-						WrappedGameProfile profile = new WrappedGameProfile(UUID.randomUUID(), ChatColor.translateAlternateColorCodes('&', player));
+						WrappedGameProfile profile = new WrappedGameProfile(randomUUID, ChatColor.translateAlternateColorCodes('&', player));
 						profiles.add(profile);
 					}
 					originalResponse.setPlayers(profiles);
