@@ -31,7 +31,7 @@ public class PingListener {
 	protected final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, new ThreadFactory() {
 		@Override
 		public Thread newThread(Runnable r) {
-			Thread thread = new Thread(r, "AnimatedPingTimer");
+			Thread thread = new Thread(r, "AnimatedPingScheduler");
 			thread.setDaemon(true);
 			return thread;
 		}
