@@ -38,16 +38,26 @@ public class PingListener {
 			) {
 				@Override
 				public void onPacketSending(PacketEvent event) {
-					if (pluginRef.getConfiguration().getPings().length > 0) {
+					if (
+						pluginRef.getConfiguration().getPings().length > 0 &&
+						!pluginRef.getConfiguration().getIgnoredIPs().contains(event.getPlayer().getAddress().getHostString())
+					) {
 						event.setCancelled(true);
 						if (event.getPacket().getType() == PacketType.Status.Server.OUT_SERVER_INFO) {
-							timer.schedule(new PingResponseTask(event.getPlayer(), event.getPacket().getServerPings().read(0), pluginRef.getConfiguration().getPings()), 0, pluginRef.getConfiguration().getInterval());
+							timer.schedule(
+								new PingResponseTask(
+									event.getPlayer(), event.getPacket().getServerPings().read(0),
+									pluginRef.getConfiguration().getPings()
+								), 
+								0, pluginRef.getConfiguration().getInterval()
+							);
 						}
 					}
 				}
 			}
 		);
 	}
+
 
 	private static class PingResponseTask extends TimerTask {
 
@@ -69,12 +79,14 @@ public class PingListener {
 		@Override
 		public void run() {
 			try {
+				//cancel task if connection is closed
 				if (!player.isOnline()) {
 					cancel();
 					return;
 				}
-				PacketContainer serverInfo = manager.createPacket(PacketType.Status.Server.OUT_SERVER_INFO);
+				//user version name to display player count
 				this.originalResponse.setVersionName(ChatColor.GRAY.toString()+Bukkit.getOnlinePlayers().size()+"/"+this.originalResponse.getPlayersMaximum());
+				//set ping data
 				PingData toDisplay = pingResponses[currentPingToDisplay];
 				if (toDisplay.getImage() != null) { 
 					originalResponse.setFavicon(toDisplay.getImage());
@@ -90,9 +102,11 @@ public class PingListener {
 					}
 					originalResponse.setPlayers(profiles);
 				}
+				//send packet
+				PacketContainer serverInfo = manager.createPacket(PacketType.Status.Server.OUT_SERVER_INFO);
 				serverInfo.getServerPings().write(0, originalResponse);
 				manager.sendServerPacket(player, serverInfo, false);
-				manager.recieveClientPacket(player, new PacketContainer(PacketType.Status.Client.IN_PING));
+				//increment ping selector
 				currentPingToDisplay++;
 				if (currentPingToDisplay >= pingResponses.length) {
 					currentPingToDisplay = 0;

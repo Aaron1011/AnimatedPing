@@ -3,6 +3,7 @@ package animatedping;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -19,7 +20,8 @@ public class Config {
 	}
 
 	private PingData[] pings;
-	private int interval;
+	private int interval = 300;
+	private HashSet<String> ignoredIPs = new HashSet<String>();
 
 	public PingData[] getPings() {
 		return pings;
@@ -29,13 +31,21 @@ public class Config {
 		return interval;
 	}
 
+	public HashSet<String> getIgnoredIPs() {
+		return ignoredIPs;
+	}
+
 	public void loadConfig() {
 		File configfile = new File(plugin.getDataFolder(), "config.yml");
 		YamlConfiguration config = YamlConfiguration.loadConfiguration(configfile);
-		interval = config.getInt("interval", 300);
+		interval = config.getInt("interval", interval);
+		ignoredIPs.clear();
+		for (String ignoredIp : config.getStringList("ignoredIPs")) {
+			ignoredIPs.add(ignoredIp);
+		}
 		ArrayList<PingData> pings = new ArrayList<PingData>();
 		for (String key : config.getKeys(false)) {
-			if (key.equals("interval")) {
+			if (key.equals("interval") || key.equals("ignoredIPs")) {
 				continue;
 			}
 			PingData pingData = new PingData(
@@ -49,6 +59,7 @@ public class Config {
 		this.pings = pings.toArray(new PingData[0]);
 		config = new YamlConfiguration();
 		config.set("interval", 300);
+		config.set("ignoredIPs", new ArrayList<String>(ignoredIPs));
 		for (PingData ping : pings) {
 			if (ping.getMotd() != null) {
 				config.set(ping.getConfigName()+".motd", ping.getMotd());
