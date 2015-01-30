@@ -21,6 +21,7 @@ public class Config {
 
 	private PingData[] pings;
 	private int interval = 300;
+	private int responsesLimit = -1;
 	private HashSet<String> ignoredIPs = new HashSet<String>();
 
 	public PingData[] getPings() {
@@ -35,6 +36,10 @@ public class Config {
 		return ignoredIPs;
 	}
 
+	public int getResponsesLimit() {
+		return responsesLimit;
+	}
+
 	public void loadConfig() {
 		File configfile = new File(plugin.getDataFolder(), "config.yml");
 		YamlConfiguration config = YamlConfiguration.loadConfiguration(configfile);
@@ -43,9 +48,10 @@ public class Config {
 		for (String ignoredIp : config.getStringList("ignoredIPs")) {
 			ignoredIPs.add(ignoredIp);
 		}
+		responsesLimit = config.getInt("responsesLimit", responsesLimit);
 		ArrayList<PingData> pings = new ArrayList<PingData>();
 		for (String key : config.getKeys(false)) {
-			if (key.equals("interval") || key.equals("ignoredIPs")) {
+			if (key.equals("interval") || key.equals("ignoredIPs") || key.equals("responsesLimit")) {
 				continue;
 			}
 			PingData pingData = new PingData(
@@ -60,6 +66,7 @@ public class Config {
 		config = new YamlConfiguration();
 		config.set("interval", 300);
 		config.set("ignoredIPs", new ArrayList<String>(ignoredIPs));
+		config.set("responsesLimit", responsesLimit);
 		for (PingData ping : pings) {
 			if (ping.getMotd() != null) {
 				config.set(ping.getConfigName()+".motd", ping.getMotd());
