@@ -1,0 +1,32 @@
+plugins {
+    id 'java'
+    id 'idea'
+}
+
+defaultTasks 'build'
+
+sourceCompatibility = '1.6'
+targetCompatibility = '1.6'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+
+    maven {
+        url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
+    }
+
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots"
+    }
+
+    maven {
+        url "http://ci.shadowvolt.com/plugin/repository/everything/"
+    }
+}
+
+dependencies {
+    compile group: 'org.bukkit', name: 'bukkit', version: '1.8-R0.1-SNAPSHOT'
+    compile 'com.comphenix.protocol:ProtocolLib:3.6.3-SNAPSHOT'
+    compile files('/home/aaron/repos/BukkitExecutors/build/libs/BukkitExecutors.jar')
+}

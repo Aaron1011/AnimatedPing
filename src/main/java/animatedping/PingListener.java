@@ -92,6 +92,9 @@ public class PingListener {
 			try {
 				//cancel task if response limit reached
 				if (responsesLimit != -1 && responsesCount >= responsesLimit) {
+                    PacketContainer serverInfo = manager.createPacket(PacketType.Status.Server.OUT_PING);
+                    serverInfo.getLongs().write(0, 30L);
+                    manager.sendServerPacket(player, serverInfo, false);
 					cancel();
 				}
 				//cancel task if connection is closed
@@ -99,7 +102,7 @@ public class PingListener {
 					cancel();
 				}
 				//user version name to display player count
-				this.originalResponse.setVersionName(ChatColor.GRAY.toString()+Bukkit.getOnlinePlayers().size()+"/"+this.originalResponse.getPlayersMaximum());
+				this.originalResponse.setVersionName("" + Bukkit.getOnlinePlayers().size()+"/"+this.originalResponse.getPlayersMaximum());
 				//set ping data
 				PingData toDisplay = pingResponses[responsesCount & (pingResponses.length - 1)];
 				if (toDisplay.getImage() != null) { 
